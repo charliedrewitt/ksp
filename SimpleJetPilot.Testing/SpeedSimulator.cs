@@ -56,7 +56,7 @@ namespace SimpleJetPilot.Testing
                     _throttlePercentage = _controller.Step(_currentSpeed);
                 }
 
-                _throttlePercentage = MathHelpers.Clamp<float>(_throttlePercentage, 0, 1);
+                _throttlePercentage = MathHelper.Clamp<float>(_throttlePercentage, 0, 1);
 
                 var acceleration = ((_maxAcceleration * _throttlePercentage) * elapsedSeconds);
                 var resistance = ((_airResistance * _currentSpeed) * elapsedSeconds);

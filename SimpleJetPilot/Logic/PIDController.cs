@@ -42,7 +42,7 @@ namespace SimpleJetPilot.Logic
             var error = SetPoint - input;
 
             _integrator += error;
-            _integrator = MathHelpers.Clamp<float>(_integrator, MinIntegrator, MaxIntegrator);
+            _integrator = MathHelper.Clamp<float>(_integrator, MinIntegrator, MaxIntegrator);
 
             var proportional = Kp * error;
             var integral = Ki * _integrator;
@@ -53,7 +53,7 @@ namespace SimpleJetPilot.Logic
 
             _previousError = error;
 
-            return MathHelpers.Clamp<float>(proportional + integral + derivative, MinOutput, MaxOutput);
+            return MathHelper.Clamp<float>(proportional + integral + derivative, MinOutput, MaxOutput);
         }
 
         #region Helpers

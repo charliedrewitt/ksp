@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SimpleJetPilot.Logic
 {
-    public static class MathHelpers
+    public static class MathHelper
     {
         public static T Clamp<T>(T value, T min, T max) where T : System.IComparable<T>
         {

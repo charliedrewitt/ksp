@@ -48,7 +48,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Logic\MathHelpers.cs" />
+    <Compile Include="Logic\MathHelper.cs" />
     <Compile Include="Logic\PIDController.cs" />
     <Compile Include="SimpleJetPilot.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
