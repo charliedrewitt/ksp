@@ -10,22 +10,22 @@ namespace SimpleJetPilot.Logic
         #region Properties
 
         #region Gains
-        public float Kp { get; set; }
-        public float Ki { get; set; }
-        public float Kd { get; set; }
+        public double Kp { get; set; }
+        public double Ki { get; set; }
+        public double Kd { get; set; }
         #endregion
 
         #region Inputs
-        public float SetPoint { get; set; }
+        public double SetPoint { get; set; }
         #endregion
 
         #region Limits
 
-        public float MaxOutput { get; set; }
-        public float MinOutput { get; set; }
+        public double MaxOutput { get; set; }
+        public double MinOutput { get; set; }
 
-        public float MaxIntegrator { get; set; }
-        public float MinIntegrator { get; set; }
+        public double MaxIntegrator { get; set; }
+        public double MinIntegrator { get; set; }
 
         #endregion
 
@@ -33,16 +33,16 @@ namespace SimpleJetPilot.Logic
 
         #region Private Fields
 
-        private float _integrator = 0.0f;
-        private float _previousError = 0.0f;
+        private double _integrator = 0.0f;
+        private double _previousError = 0.0f;
 
         #endregion
-        public float Step(float input)
+        public double Compute(double input)
         {
             var error = SetPoint - input;
 
             _integrator += error;
-            _integrator = MathHelper.Clamp<float>(_integrator, MinIntegrator, MaxIntegrator);
+            _integrator = MathHelper.Clamp<double>(_integrator, MinIntegrator, MaxIntegrator);
 
             var proportional = Kp * error;
             var integral = Ki * _integrator;
@@ -53,7 +53,7 @@ namespace SimpleJetPilot.Logic
 
             _previousError = error;
 
-            return MathHelper.Clamp<float>(proportional + integral + derivative, MinOutput, MaxOutput);
+            return MathHelper.Clamp<double>(proportional + integral + derivative, MinOutput, MaxOutput);
         }
 
         #region Helpers

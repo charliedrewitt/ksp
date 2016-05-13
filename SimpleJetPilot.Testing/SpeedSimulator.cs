@@ -19,11 +19,11 @@ namespace SimpleJetPilot.Testing
 
         #region Simulation Variables
 
-        private float _throttlePercentage = 0.0f;
-        private float _maxAcceleration = 20f;
-        private float _airResistance = 0.1f;
+        private double _throttlePercentage = 0.0f;
+        private double _maxAcceleration = 20f;
+        private double _airResistance = 0.1f;
 
-        private float _currentSpeed = 0.0f;
+        private double _currentSpeed = 0.0f;
 
         #endregion
 
@@ -48,15 +48,15 @@ namespace SimpleJetPilot.Testing
 
             while (true)
             {
-                var elapsedSeconds = (float)timer.ElapsedTicks / (float)Stopwatch.Frequency;
+                var elapsedSeconds = (double)timer.ElapsedTicks / (double)Stopwatch.Frequency;
                 timer = Stopwatch.StartNew();
 
                 if (_autoThrottle)
                 {
-                    _throttlePercentage = _controller.Step(_currentSpeed);
+                    _throttlePercentage = _controller.Compute(_currentSpeed);
                 }
 
-                _throttlePercentage = MathHelper.Clamp<float>(_throttlePercentage, 0, 1);
+                _throttlePercentage = MathHelper.Clamp<double>(_throttlePercentage, 0, 1);
 
                 var acceleration = ((_maxAcceleration * _throttlePercentage) * elapsedSeconds);
                 var resistance = ((_airResistance * _currentSpeed) * elapsedSeconds);
