@@ -37,16 +37,16 @@ namespace CDKspUtil.Logic
         private double _previousError = 0.0f;
 
         #endregion
-        public double Compute(double input)
+        public double Compute(double input, float deltaTime)
         {
             var error = SetPoint - input;
 
-            _integrator += error;
+            _integrator += (error * deltaTime);
             _integrator = MathHelper.Clamp<double>(_integrator, MinIntegrator, MaxIntegrator);
 
             var proportional = Kp * error;
             var integral = Ki * _integrator;
-            var derivative = Kd * (_previousError - error);
+            var derivative = Kd * ((_previousError - error) / deltaTime);
 
             //Console.SetCursorPosition(0, 1);
             //Console.Write($"P:{proportional.ToString("F2")}\nI:{integral.ToString("F2")}\nD:{derivative.ToString("F2")}");

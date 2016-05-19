@@ -2,6 +2,7 @@
 using CDKspUtil.UI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -14,12 +15,27 @@ namespace SimpleJetPilot
         private int _windowId;
         private Vessel _vessel;
         private Rect _windowPosition;
+        private UIState _state = UIState.SPD;
+
+        #region Throttle
+        private bool _manageThrottle;
         private PIDController _throttleController;
         private Parseable<int> _desiredSpeed;
-        private bool _manageThrottle;
+        #endregion
 
+        #region Orientation
+
+        private bool _holdPitch;
+        private PIDController _pitchController;
+        private Parseable<int> _desiredPitch;
+
+        #endregion
+
+        #region PID Gains
         private Parseable<double> _pGain;
         private Parseable<double> _iGain;
+        private Parseable<double> _dGain;
+        #endregion
 
         private void Awake()
         {
@@ -30,14 +46,20 @@ namespace SimpleJetPilot
         private void Start()
         {
             _desiredSpeed = new Parseable<int>(10);
-            _pGain = new Parseable<double>(0.5);
-            _iGain = new Parseable<double>(0.005);
+            _pGain = new Parseable<double>(0.15);
+            _iGain = new Parseable<double>(0.01);
+            _dGain = new Parseable<double>(0.5);
 
             _throttleController = InitialiseThrottleController();
 
             _vessel = FlightGlobals.ActiveVessel;
             _vessel.OnFlyByWire -= AutoThrottle;
             _vessel.OnFlyByWire += AutoThrottle;
+        }
+
+        private void OnSave(ConfigNode node)
+        {
+            LogHelper.Info("OnSave");
         }
 
         private void OnGUI()
@@ -54,33 +76,47 @@ namespace SimpleJetPilot
             GUI.skin = HighLogic.Skin;
 
             GUILayout.BeginHorizontal(GUILayout.Width(250f));
-            GUILayout.BeginVertical();
+            {
+                GUILayout.BeginVertical();
+                {
+                    var newState = WindowHelper.RenderTabs(_state);
 
-            GUILayout.Label(String.Format("Speed: {0}m/s", _vessel.speed.ToString("n2")));
-            GUILayout.Label(String.Format("Set Speed: {0}m/s", _desiredSpeed.Value.ToString("n")));
+                    if (newState != null) _state = (UIState)newState;
 
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(String.Format("Desired Speed"));
-            _desiredSpeed.Text = GUILayout.TextArea(_desiredSpeed.Text);
-            GUILayout.EndHorizontal();
+                    switch (_state)
+                    {
+                        case UIState.SPD:
+                            {
+                                WindowHelper.RenderSpeedInfo(_desiredSpeed.Value);
 
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(String.Format("P"));
-            _pGain.Text = GUILayout.TextArea(_pGain.Text);
-            GUILayout.EndHorizontal();
+                                WindowHelper.RenderDesiredSpeedControls(ref _manageThrottle, ref _desiredSpeed);
 
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(String.Format("I"));
-            _iGain.Text = GUILayout.TextArea(_iGain.Text);
-            GUILayout.EndHorizontal();
+                                if (_desiredSpeed.Success) _throttleController.SetPoint = (double)_desiredSpeed.Value;
 
-            if (_desiredSpeed.Success) _throttleController.SetPoint = (double)_desiredSpeed.Value;
-            if (_pGain.Success) _throttleController.Kp = (double)_pGain.Value;
-            if (_iGain.Success) _throttleController.Ki = (double)_iGain.Value;
+                                break;
+                            }
+                        case UIState.ORT:
+                            {
+                                var angles = _vessel.transform.rotation.eulerAngles;
 
-            if (GUILayout.Button(_manageThrottle ? "Off" : "On")) _manageThrottle = !_manageThrottle;
+                                //WindowHelper.RenderOrientationInfo(angles.y, angles.z, angles.x);
 
-            GUILayout.EndVertical();
+                                break;
+                            }
+                        case UIState.PID:
+                            {
+                                WindowHelper.RenderPidControls(ref _pGain, ref _iGain, ref _dGain);
+
+                                //if (_pGain.Success) _throttleController.Kp = (double)_pGain.Value;
+                                //if (_iGain.Success) _throttleController.Ki = (double)_iGain.Value;
+                                //if (_dGain.Success) _throttleController.Kd = (double)_dGain.Value;
+
+                                break;
+                            }
+                    }
+                }
+                GUILayout.EndVertical();
+            }
             GUILayout.EndHorizontal();
 
             GUI.DragWindow();
@@ -90,13 +126,17 @@ namespace SimpleJetPilot
         {
             if (_manageThrottle)
             {
-                state.mainThrottle = (float)_throttleController.Compute(_vessel.speed);
+                state.mainThrottle = (float)_throttleController.Compute(_vessel.speed, Time.deltaTime);
             }
         }
 
         private PIDController InitialiseThrottleController()
         {
             var controller = new PIDController();
+
+            controller.Kp = 0.3;
+            controller.Ki = 0.001;
+            controller.Kd = 0.001;
 
             controller.MaxIntegrator = 250;
             controller.MinIntegrator = -250;

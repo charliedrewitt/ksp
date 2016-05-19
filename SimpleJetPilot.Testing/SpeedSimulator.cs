@@ -48,12 +48,12 @@ namespace SimpleJetPilot.Testing
 
             while (true)
             {
-                var elapsedSeconds = (double)timer.ElapsedTicks / (double)Stopwatch.Frequency;
+                var elapsedSeconds = (float)timer.ElapsedTicks / (float)Stopwatch.Frequency;
                 timer = Stopwatch.StartNew();
 
                 if (_autoThrottle)
                 {
-                    _throttlePercentage = _controller.Compute(_currentSpeed);
+                    _throttlePercentage = _controller.Compute(_currentSpeed, elapsedSeconds);
                 }
 
                 _throttlePercentage = MathHelper.Clamp<double>(_throttlePercentage, 0, 1);
