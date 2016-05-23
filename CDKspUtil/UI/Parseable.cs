@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SimpleJetPilot.UI
+namespace CDKspUtil.UI
 {
     public class Parseable<T> where T : IConvertible
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SimpleJetPilot.Logic
+namespace CDKspUtil.Logic
 {
     public static class MathHelper
     {

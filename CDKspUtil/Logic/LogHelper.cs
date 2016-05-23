@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace SimpleJetPilot.Logic
+namespace CDKspUtil.Logic
 {
     public static class LogHelper
     {
@@ -48,9 +48,9 @@ namespace SimpleJetPilot.Logic
 
                 switch (type)
                 {
-                    case EntryType.Info: { Debug.LogFormat("[SimpleJetPilot]: {0}", message); break; }
-                    case EntryType.Warning: { Debug.LogWarningFormat("[SimpleJetPilot]: {0}", message); break; }
-                    case EntryType.Error: { Debug.LogErrorFormat("[SimpleJetPilot]: {0}", message); break; }
+                    case EntryType.Info: { Debug.LogFormat("[CDKspUtil]: {0}", message); break; }
+                    case EntryType.Warning: { Debug.LogWarningFormat("[CDKspUtil]: {0}", message); break; }
+                    case EntryType.Error: { Debug.LogErrorFormat("[CDKspUtil]: {0}", message); break; }
                 }
             }
             catch (Exception ex)

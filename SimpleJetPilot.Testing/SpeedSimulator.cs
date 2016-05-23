@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using SimpleJetPilot.Logic;
+using CDKspUtil.Logic;
 
 namespace SimpleJetPilot.Testing
 {

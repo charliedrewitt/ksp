@@ -1,5 +1,5 @@
-﻿using SimpleJetPilot.Logic;
-using SimpleJetPilot.UI;
+﻿using CDKspUtil.Logic;
+using CDKspUtil.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
