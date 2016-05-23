@@ -33,9 +33,11 @@
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\lib\Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="KSPUtil">
       <HintPath>..\lib\KSPUtil.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -47,6 +49,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
       <HintPath>..\lib\UnityEngine.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -55,6 +58,7 @@
     <Compile Include="Logic\PIDController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI\Parseable.cs" />
+    <Compile Include="UI\UIState.cs" />
     <Compile Include="UI\WindowHelper.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
