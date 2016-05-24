@@ -40,7 +40,7 @@ namespace AssemblyFuelUtility
         {
             //Clean up
             GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
-
+            
             if (_afuButton != null)
             {
                 ApplicationLauncher.Instance.RemoveModApplication(_afuButton);
@@ -124,17 +124,17 @@ namespace AssemblyFuelUtility
                     }
                     GUILayout.EndHorizontal();
 
-                    if (GUILayout.Button("Apply"))
+                    if (_fuel.Changed)
                     {
                         ApplyFuelModel(_fuel, EditorLogic.fetch.ship);
+
+                        _fuel.ChangesApplied();
                     }
 
                     if (!String.IsNullOrEmpty(_debugString))
                     {
                         _debugString = GUILayout.TextArea(_debugString);
                     }
-
-                    
                 }
                 GUILayout.EndVertical();
             }

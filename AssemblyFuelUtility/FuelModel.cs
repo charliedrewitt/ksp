@@ -7,22 +7,65 @@ namespace AssemblyFuelUtility
 {
     public class FuelModel
     {
-        public float LiquidFuel { get; set; }
-        public float Oxidizer { get; set; }
-        public float Monoprop { get; set; }
-
-        public override bool Equals(object obj)
+        private float _liquidFuel;
+        public float LiquidFuel
         {
-            if (obj is FuelModel)
+            get
             {
-                var otherModel = (FuelModel)obj;
-
-                return this.LiquidFuel == otherModel.LiquidFuel &&
-                        this.Oxidizer == otherModel.Oxidizer &&
-                        this.Monoprop == otherModel.Monoprop;
+                return _liquidFuel;
             }
+            set
+            {
+                if (value != _liquidFuel)
+                {
+                    Changed = true;
+                }
 
-            return false;
+                _liquidFuel = value;
+            }
+        }
+
+        private float _oxidizer;
+        public float Oxidizer
+        {
+            get
+            {
+                return _oxidizer;
+            }
+            set
+            {
+                if (value != _oxidizer)
+                {
+                    Changed = true;
+                }
+
+                _oxidizer = value;
+            }
+        }
+
+        private float _monoprop;
+        public float Monoprop
+        {
+            get
+            {
+                return _monoprop;
+            }
+            set
+            {
+                if (value != _monoprop)
+                {
+                    Changed = true;
+                }
+
+                _monoprop = value;
+            }
+        }
+
+        public bool Changed { get; private set; }
+
+        public void ChangesApplied()
+        {
+            Changed = false;
         }
 
         public override int GetHashCode()
