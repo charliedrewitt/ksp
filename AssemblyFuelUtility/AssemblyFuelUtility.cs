@@ -1,6 +1,7 @@
 ﻿using AssemblyFuelUtility.Settings;
 using CDKspUtil.Logic;
 using CDKspUtil.UI;
+using KSP.IO;
 using KSP.UI.Screens;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace AssemblyFuelUtility
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class AssemblyFuelUtility : MonoBehaviour
     {
-        private AFUSettings _settings;
+        private AssemblyFuelConfigNode _config;
 
         private bool _toggleOn = false;
 
@@ -26,44 +27,35 @@ namespace AssemblyFuelUtility
 
         private void Awake()
         {
-            _settings = AFUSettings.Load();
+            _config = AssemblyFuelConfigNode.LoadOrCreate(GetEnsuredConfigPath());
 
             LogHelper.Info("AssemblyFuelUtility Awake");
 
             GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
-            
+
             _windowId = WindowHelper.NextWindowId("AssemblyFuelUtility");
-            _windowPosition = new Rect(_settings.WindowY, _settings.WindowY, 250, 250);
+            _windowPosition = new Rect(_config.WindowX, _config.WindowY, 250, 250);
+            _fuel = _config.FuelModel;
         }
 
-        void OnDestroy()
+        private void OnDestroy()
         {
+            Save();
+
             //Clean up
             GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
-            
+
             if (_afuButton != null)
             {
                 ApplicationLauncher.Instance.RemoveModApplication(_afuButton);
             }
         }
 
-        private void Start()
-        {
-            _fuel = new FuelModel();
-        }
-
         private void OnGUI()
         {
-            if (_toggleOn) { 
+            if (_toggleOn)
+            {
                 _windowPosition = GUILayout.Window(_windowId, _windowPosition, RenderWindowContent, "Assembly Fuel Utility");
-
-                if (_windowPosition.x != _settings.WindowX || _windowPosition.y != _settings.WindowY)
-                {
-                    _settings.WindowX = (int)_windowPosition.x;
-                    _settings.WindowY = (int)_windowPosition.y;
-
-                    AFUSettings.Save(_settings);
-                }
             }
         }
 
@@ -82,8 +74,6 @@ namespace AssemblyFuelUtility
                             _fuel.LiquidFuel = 0f;
                             _fuel.Oxidizer = 0f;
                             _fuel.Monoprop = 0f;
-
-                            ApplyFuelModel(_fuel, EditorLogic.fetch.ship);
                         }
 
                         if (GUILayout.Button("Fill All"))
@@ -91,8 +81,6 @@ namespace AssemblyFuelUtility
                             _fuel.LiquidFuel = 1.0f;
                             _fuel.Oxidizer = 1.0f;
                             _fuel.Monoprop = 1.0f;
-
-                            ApplyFuelModel(_fuel, EditorLogic.fetch.ship);
                         }
                     }
                     GUILayout.EndHorizontal();
@@ -100,7 +88,6 @@ namespace AssemblyFuelUtility
                     GUILayout.Label(FuelTypes.LiquidFuel);
                     GUILayout.BeginHorizontal();
                     {
-                        
                         _fuel.LiquidFuel = GUILayout.HorizontalSlider(_fuel.LiquidFuel, 0, 1);
                         GUILayout.Label(((int)(_fuel.LiquidFuel * 100)).ToString("n2"));
                     }
@@ -109,7 +96,6 @@ namespace AssemblyFuelUtility
                     GUILayout.Label(FuelTypes.Oxidizer);
                     GUILayout.BeginHorizontal();
                     {
-                        
                         _fuel.Oxidizer = GUILayout.HorizontalSlider(_fuel.Oxidizer, 0, 1);
                         GUILayout.Label(((int)(_fuel.Oxidizer * 100)).ToString("n2"));
                     }
@@ -118,7 +104,6 @@ namespace AssemblyFuelUtility
                     GUILayout.Label(FuelTypes.Monopropellant);
                     GUILayout.BeginHorizontal();
                     {
-                        
                         _fuel.Monoprop = GUILayout.HorizontalSlider(_fuel.Monoprop, 0, 1);
                         GUILayout.Label(((int)(_fuel.Monoprop * 100)).ToString("n2"));
                     }
@@ -126,15 +111,15 @@ namespace AssemblyFuelUtility
 
                     if (_fuel.Changed)
                     {
-                        ApplyFuelModel(_fuel, EditorLogic.fetch.ship);
+                        _fuel.Apply(EditorLogic.fetch.ship);
 
-                        _fuel.ChangesApplied();
+                        _config.FuelModel = _fuel;
                     }
 
-                    if (!String.IsNullOrEmpty(_debugString))
-                    {
-                        _debugString = GUILayout.TextArea(_debugString);
-                    }
+                    //if (!String.IsNullOrEmpty(_debugString))
+                    //{
+                    //    _debugString = GUILayout.TextArea(_debugString);
+                    //}
                 }
                 GUILayout.EndVertical();
             }
@@ -143,38 +128,28 @@ namespace AssemblyFuelUtility
             GUI.DragWindow();
         }
 
-        private void ApplyFuelModel(FuelModel model, ShipConstruct ship)
-        {
-            foreach (var part in ship.parts)
-            {
-                foreach (var resource in part.Resources.list)
-                {
-                    switch (resource.resourceName)
-                    {
-                        case FuelTypes.LiquidFuel:
-                            {
-                                resource.amount = resource.maxAmount * _fuel.LiquidFuel;
-                                break;
-                            }
-                        case FuelTypes.Oxidizer:
-                            {
-                                resource.amount = resource.maxAmount * _fuel.Oxidizer;
-                                break;
-                            }
-                        case FuelTypes.Monopropellant:
-                            {
-                                resource.amount = resource.maxAmount * _fuel.Monoprop;
-                                break;
-                            }
-
-                    }
-                }
-            }
-        }
-
         #region Persistance
 
+        private void Save()
+        {
+            _config.WindowX = _windowPosition.x;
+            _config.WindowY = _windowPosition.y;
 
+            _config.Save(GetEnsuredConfigPath());
+        }
+
+        private string GetEnsuredConfigPath()
+        {
+            string path = IOUtils.GetFilePathFor(typeof(AssemblyFuelUtility), "afu_settings.cfg");
+            string directory = System.IO.Path.GetDirectoryName(path);
+
+            if (!System.IO.Directory.Exists(directory))
+            {
+                System.IO.Directory.CreateDirectory(directory);
+            }
+
+            return path;
+        }
 
         #endregion
 

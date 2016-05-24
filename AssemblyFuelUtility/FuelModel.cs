@@ -63,8 +63,34 @@ namespace AssemblyFuelUtility
 
         public bool Changed { get; private set; }
 
-        public void ChangesApplied()
+        public void Apply(ShipConstruct ship)
         {
+            foreach (var part in ship.parts)
+            {
+                foreach (var resource in part.Resources.list)
+                {
+                    switch (resource.resourceName)
+                    {
+                        case FuelTypes.LiquidFuel:
+                            {
+                                resource.amount = resource.maxAmount * this.LiquidFuel;
+                                break;
+                            }
+                        case FuelTypes.Oxidizer:
+                            {
+                                resource.amount = resource.maxAmount * this.Oxidizer;
+                                break;
+                            }
+                        case FuelTypes.Monopropellant:
+                            {
+                                resource.amount = resource.maxAmount * this.Monoprop;
+                                break;
+                            }
+
+                    }
+                }
+            }
+
             Changed = false;
         }
 

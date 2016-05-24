@@ -13,6 +13,13 @@ namespace CDKspUtil.UI
             _text = _value.ToString();
         }
 
+        public Parseable(string initialValue)
+        {
+            _text = initialValue;
+
+            Parse();
+        }
+
         private string _text = "";
         public string Text
         {
@@ -24,18 +31,7 @@ namespace CDKspUtil.UI
             {
                 _text = value;
 
-                try
-                {
-                    if (String.IsNullOrEmpty(_text))
-                    {
-                        Success = false; return;
-                    }
-
-                    _value = (T)Convert.ChangeType(_text, typeof(T));
-
-                    Success = true;
-                }
-                catch { Success = false; }
+                Parse();
             }
         }
 
@@ -49,5 +45,21 @@ namespace CDKspUtil.UI
         }
 
         public bool Success;
+
+        private void Parse()
+        {
+            try
+            {
+                if (String.IsNullOrEmpty(_text))
+                {
+                    Success = false; return;
+                }
+
+                _value = (T)Convert.ChangeType(_text, typeof(T));
+
+                Success = true;
+            }
+            catch { Success = false; }
+        }
     }
 }
