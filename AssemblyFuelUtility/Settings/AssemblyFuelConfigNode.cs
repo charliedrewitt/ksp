@@ -96,7 +96,8 @@ namespace AssemblyFuelUtility.Settings
                     {
                         LiquidFuel = float.Parse(vals[0]),
                         Oxidizer = float.Parse(vals[1]),
-                        Monoprop = float.Parse(vals[2]),
+                        SolidFuel = float.Parse(vals[2]),
+                        Monoprop = float.Parse(vals[3]),
                     };
                 }
 
@@ -104,7 +105,7 @@ namespace AssemblyFuelUtility.Settings
             }
             set
             {
-                string serialized = String.Format("{0}:{1}:{2}", value.LiquidFuel, value.Oxidizer, value.Monoprop);
+                string serialized = String.Format("{0}:{1}:{2}:{3}", value.LiquidFuel, value.Oxidizer, value.SolidFuel, value.Monoprop);
 
                 _node.SetValue("FuelModel", serialized, true);
             }

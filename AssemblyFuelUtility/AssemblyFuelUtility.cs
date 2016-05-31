@@ -63,63 +63,100 @@ namespace AssemblyFuelUtility
         {
             GUI.skin = HighLogic.Skin;
 
+            //GUILayout.BeginArea(new Rect(_windowPosition.x - 10, _windowPosition.y, 10, 10));
+            //{ 
+            //    if (GUILayout.Button("x"))
+            //    {
+            //        _toggleOn = false;
+            //    }
+            //}
+            //GUILayout.EndArea();
+
             GUILayout.BeginHorizontal(GUILayout.Width(250f));
             {
+                //GUILayout.Button("x", GUILayout.)
+
                 GUILayout.BeginVertical();
                 {
-                    GUILayout.BeginHorizontal();
+                    var ship = EditorLogic.fetch.ship;
+
+                    if (ShipHasAnyFuelParts(ship))
                     {
-                        if (GUILayout.Button("Empty All"))
+                        GUILayout.BeginHorizontal();
                         {
-                            _fuel.LiquidFuel = 0f;
-                            _fuel.Oxidizer = 0f;
-                            _fuel.Monoprop = 0f;
+                            if (GUILayout.Button("Empty All"))
+                            {
+                                _fuel.LiquidFuel = 0f;
+                                _fuel.Oxidizer = 0f;
+                                _fuel.SolidFuel = 0f;
+                                _fuel.Monoprop = 0f;
+                            }
+
+                            if (GUILayout.Button("Fill All"))
+                            {
+                                _fuel.LiquidFuel = 1.0f;
+                                _fuel.Oxidizer = 1.0f;
+                                _fuel.SolidFuel = 1.0f;
+                                _fuel.Monoprop = 1.0f;
+                            }
+                        }
+                        GUILayout.EndHorizontal();
+
+                        if (ShipHasAnyPartsContaining(ship, FuelTypes.LiquidFuel))
+                        {
+                            GUILayout.Label(FuelTypes.LiquidFuel);
+                            GUILayout.BeginHorizontal();
+                            {
+                                _fuel.LiquidFuel = GUILayout.HorizontalSlider(_fuel.LiquidFuel, 0, 1);
+                                GUILayout.Label(_fuel.LiquidFuel.ToString("p0"));
+                            }
+                            GUILayout.EndHorizontal();
                         }
 
-                        if (GUILayout.Button("Fill All"))
+                        if (ShipHasAnyPartsContaining(ship, FuelTypes.Oxidizer))
                         {
-                            _fuel.LiquidFuel = 1.0f;
-                            _fuel.Oxidizer = 1.0f;
-                            _fuel.Monoprop = 1.0f;
+                            GUILayout.Label(FuelTypes.Oxidizer);
+                            GUILayout.BeginHorizontal();
+                            {
+                                _fuel.Oxidizer = GUILayout.HorizontalSlider(_fuel.Oxidizer, 0, 1);
+                                GUILayout.Label(_fuel.Oxidizer.ToString("p0"));
+                            }
+                            GUILayout.EndHorizontal();
+                        }
+
+                        if (ShipHasAnyPartsContaining(ship, FuelTypes.SolidFuel))
+                        {
+                            GUILayout.Label(FuelTypes.SolidFuel);
+                            GUILayout.BeginHorizontal();
+                            {
+                                _fuel.SolidFuel = GUILayout.HorizontalSlider(_fuel.SolidFuel, 0, 1);
+                                GUILayout.Label(_fuel.SolidFuel.ToString("p0"));
+                            }
+                            GUILayout.EndHorizontal();
+                        }
+
+                        if (ShipHasAnyPartsContaining(ship, FuelTypes.Monopropellant))
+                        {
+                            GUILayout.Label(FuelTypes.Monopropellant);
+                            GUILayout.BeginHorizontal();
+                            {
+                                _fuel.Monoprop = GUILayout.HorizontalSlider(_fuel.Monoprop, 0, 1);
+                                GUILayout.Label(_fuel.Monoprop.ToString("p0"));
+                            }
+                            GUILayout.EndHorizontal();
+                        }
+
+                        if (_fuel.Changed)
+                        {
+                            _fuel.Apply(ship);
+
+                            _config.FuelModel = _fuel;
                         }
                     }
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.Label(FuelTypes.LiquidFuel);
-                    GUILayout.BeginHorizontal();
+                    else
                     {
-                        _fuel.LiquidFuel = GUILayout.HorizontalSlider(_fuel.LiquidFuel, 0, 1);
-                        GUILayout.Label(((int)(_fuel.LiquidFuel * 100)).ToString("n2"));
+                        GUILayout.Label("Ship currently has no parts containing fuel. Add some.");
                     }
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.Label(FuelTypes.Oxidizer);
-                    GUILayout.BeginHorizontal();
-                    {
-                        _fuel.Oxidizer = GUILayout.HorizontalSlider(_fuel.Oxidizer, 0, 1);
-                        GUILayout.Label(((int)(_fuel.Oxidizer * 100)).ToString("n2"));
-                    }
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.Label(FuelTypes.Monopropellant);
-                    GUILayout.BeginHorizontal();
-                    {
-                        _fuel.Monoprop = GUILayout.HorizontalSlider(_fuel.Monoprop, 0, 1);
-                        GUILayout.Label(((int)(_fuel.Monoprop * 100)).ToString("n2"));
-                    }
-                    GUILayout.EndHorizontal();
-
-                    if (_fuel.Changed)
-                    {
-                        _fuel.Apply(EditorLogic.fetch.ship);
-
-                        _config.FuelModel = _fuel;
-                    }
-
-                    //if (!String.IsNullOrEmpty(_debugString))
-                    //{
-                    //    _debugString = GUILayout.TextArea(_debugString);
-                    //}
                 }
                 GUILayout.EndVertical();
             }
@@ -127,6 +164,30 @@ namespace AssemblyFuelUtility
 
             GUI.DragWindow();
         }
+
+        #region Utility
+
+        private bool ShipHasAnyPartsContaining(ShipConstruct ship, string fuelName)
+        {
+            foreach (var part in ship.parts)
+            {
+                if (part.Resources.list.Any(r => r.resourceName == fuelName)) return true;
+            }
+
+            return false;
+        }
+
+        private bool ShipHasAnyFuelParts(ShipConstruct ship)
+        {
+            foreach (var part in ship.parts)
+            {
+                if (part.Resources.list.Any(r => FuelTypes.All.Contains(r.resourceName))) return true;
+            }
+
+            return false;
+        }
+
+        #endregion
 
         #region Persistance
 

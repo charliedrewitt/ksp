@@ -243,5 +243,4 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
-/SimpleJetPilot/GameData/SimpleJetPilot/SimpleJetPilot.dll
-*.dll
+/**/GameData/**/*.dll

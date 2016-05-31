@@ -1,7 +1,10 @@
-﻿using System;
+﻿using CDKspUtil.Logic;
+using KSP.UI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace AssemblyFuelUtility
 {
@@ -43,6 +46,24 @@ namespace AssemblyFuelUtility
             }
         }
 
+        private float _solid;
+        public float SolidFuel
+        {
+            get
+            {
+                return _solid;
+            }
+            set
+            {
+                if (value != _solid)
+                {
+                    Changed = true;
+                }
+
+                _solid = value;
+            }
+        }
+
         private float _monoprop;
         public float Monoprop
         {
@@ -81,15 +102,29 @@ namespace AssemblyFuelUtility
                                 resource.amount = resource.maxAmount * this.Oxidizer;
                                 break;
                             }
+                        case FuelTypes.SolidFuel:
+                            {
+                                resource.amount = resource.maxAmount * this.SolidFuel;
+                                break;
+                            }
                         case FuelTypes.Monopropellant:
                             {
                                 resource.amount = resource.maxAmount * this.Monoprop;
                                 break;
                             }
-
                     }
                 }
             }
+
+            var resourceEditors = EditorLogic.FindObjectsOfType<UIPartActionResourceEditor>();
+
+            foreach (var ed in resourceEditors)
+            {
+                ed.resourceAmnt.text = ed.Resource.amount.ToString("F1");
+                ed.slider.value = (float)(ed.Resource.amount / ed.Resource.maxAmount);
+            }
+
+            GameEvents.onEditorShipModified.Fire(ship);
 
             Changed = false;
         }
