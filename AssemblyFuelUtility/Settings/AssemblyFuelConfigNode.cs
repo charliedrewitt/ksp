@@ -86,19 +86,26 @@ namespace AssemblyFuelUtility.Settings
         {
             get
             {
-                string stored = _node.GetValue("FuelModel");
-
-                if (!String.IsNullOrEmpty(stored))
+                try
                 {
-                    string[] vals = stored.Split(':');
+                    string stored = _node.GetValue("FuelModel");
 
-                    return new FuelModel
+                    if (!String.IsNullOrEmpty(stored))
                     {
-                        LiquidFuel = float.Parse(vals[0]),
-                        Oxidizer = float.Parse(vals[1]),
-                        SolidFuel = float.Parse(vals[2]),
-                        Monoprop = float.Parse(vals[3]),
-                    };
+                        string[] vals = stored.Split(':');
+
+                        return new FuelModel
+                        {
+                            LiquidFuel = float.Parse(vals[0]),
+                            Oxidizer = float.Parse(vals[1]),
+                            SolidFuel = float.Parse(vals[2]),
+                            Monoprop = float.Parse(vals[3]),
+                        };
+                    }
+                }
+                catch(Exception ex)
+                {
+                    LogHelper.Error("Unable to load FuelModel from settings.\r\n{0}\r\n{1}", ex.Message, ex.StackTrace);
                 }
 
                 return new FuelModel();
