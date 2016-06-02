@@ -65,19 +65,19 @@
     <Compile Include="Settings\AssemblyFuelConfigNode.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CDKspUtil\CDKspUtil.csproj">
-      <Project>{fd4fb30e-dac4-408a-b184-025223afe2bd}</Project>
-      <Name>CDKspUtil</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="GameData\AssemblyFuelUtility\AssemblyFuelUtility.cfg" />
     <None Include="TestNoLaunch.bat" />
     <None Include="Test.bat" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="GameData\AssemblyFuelUtility\AFUIcon.png" />
     <Content Include="GameData\AssemblyFuelUtility\PluginData\AssemblyFuelUtility\afu_scripts.js" />
+    <Content Include="gpl.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CDKspUtil\CDKspUtil.csproj">
+      <Project>{fd4fb30e-dac4-408a-b184-025223afe2bd}</Project>
+      <Name>CDKspUtil</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
