@@ -1,6 +1,7 @@
 ﻿using AssemblyFuelUtility.Settings;
 using CDKspUtil.Logic;
 using CDKspUtil.UI;
+using JEngine = Jint.Engine;
 using KSP.IO;
 using KSP.UI.Screens;
 using System;
@@ -14,8 +15,10 @@ namespace AssemblyFuelUtility
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class AssemblyFuelUtility : MonoBehaviour
     {
-        private AssemblyFuelConfigNode _config;
+        private const float _buttonHeight = 20f;
+        private GUIStyle _buttonStyle;
 
+        private AssemblyFuelConfigNode _config;
         private bool _toggleOn = false;
 
         private int _windowId;
@@ -34,8 +37,10 @@ namespace AssemblyFuelUtility
             GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
 
             _windowId = WindowHelper.NextWindowId("AssemblyFuelUtility");
-            _windowPosition = new Rect(_config.WindowX, _config.WindowY, 250, 250);
+            _windowPosition = new Rect(_config.WindowX, _config.WindowY, 0, 0);
             _fuel = _config.FuelModel;
+
+
         }
 
         private void OnDestroy()
@@ -55,114 +60,85 @@ namespace AssemblyFuelUtility
         {
             if (_toggleOn)
             {
+                if (Event.current.type == EventType.Layout)
+                {
+                    _windowPosition.height = 0;
+                    _windowPosition.width = 0;
+                }
+
                 _windowPosition = GUILayout.Window(_windowId, _windowPosition, RenderWindowContent, "Assembly Fuel Utility");
             }
         }
 
         private void RenderWindowContent(int windowId)
         {
-            GUI.skin = HighLogic.Skin;
-
-            //GUILayout.BeginArea(new Rect(_windowPosition.x - 10, _windowPosition.y, 10, 10));
-            //{ 
-            //    if (GUILayout.Button("x"))
-            //    {
-            //        _toggleOn = false;
-            //    }
-            //}
-            //GUILayout.EndArea();
-
-            GUILayout.BeginHorizontal(GUILayout.Width(250f));
+            try
             {
-                //GUILayout.Button("x", GUILayout.)
+                var ship = EditorLogic.fetch.ship;
+                var functionsSource = System.IO.File.ReadAllText(IOUtils.GetFilePathFor(typeof(AssemblyFuelUtility), "afu_scripts.js"));
 
+                var jEngine = CreateJintEngine();
+
+                //Variables
+                jEngine.SetValue("_fuel", _fuel);
+                jEngine.SetValue("_ship", ship);
+                jEngine.SetValue("_toggleOn", _toggleOn);
+                jEngine.SetValue("_buttonHeight", _buttonHeight);
+
+                //Functions
+                jEngine.SetValue("ShipHasAnyFuelParts", new Func<ShipConstruct, bool>(ShipHasAnyFuelParts));
+                jEngine.SetValue("ShipHasAnyPartsContaining", new Func<ShipConstruct, string, bool>(ShipHasAnyPartsContaining));
+
+                jEngine.Execute(functionsSource);
+
+                var state = (object[])jEngine.Execute("renderMainGui();").GetCompletionValue().ToObject();
+
+                _toggleOn = (bool)state[0];
+                _fuel = (FuelModel)state[1];
+
+                if (_fuel.Changed)
+                {
+                    _fuel.Apply(ship);
+
+                    _config.FuelModel = _fuel;
+                }
+            }
+            catch (Exception ex)
+            {
                 GUILayout.BeginVertical();
                 {
-                    var ship = EditorLogic.fetch.ship;
-
-                    if (ShipHasAnyFuelParts(ship))
-                    {
-                        GUILayout.BeginHorizontal();
-                        {
-                            if (GUILayout.Button("Empty All"))
-                            {
-                                _fuel.LiquidFuel = 0f;
-                                _fuel.Oxidizer = 0f;
-                                _fuel.SolidFuel = 0f;
-                                _fuel.Monoprop = 0f;
-                            }
-
-                            if (GUILayout.Button("Fill All"))
-                            {
-                                _fuel.LiquidFuel = 1.0f;
-                                _fuel.Oxidizer = 1.0f;
-                                _fuel.SolidFuel = 1.0f;
-                                _fuel.Monoprop = 1.0f;
-                            }
-                        }
-                        GUILayout.EndHorizontal();
-
-                        if (ShipHasAnyPartsContaining(ship, FuelTypes.LiquidFuel))
-                        {
-                            GUILayout.Label(FuelTypes.LiquidFuel);
-                            GUILayout.BeginHorizontal();
-                            {
-                                _fuel.LiquidFuel = GUILayout.HorizontalSlider(_fuel.LiquidFuel, 0, 1);
-                                GUILayout.Label(_fuel.LiquidFuel.ToString("p0"));
-                            }
-                            GUILayout.EndHorizontal();
-                        }
-
-                        if (ShipHasAnyPartsContaining(ship, FuelTypes.Oxidizer))
-                        {
-                            GUILayout.Label(FuelTypes.Oxidizer);
-                            GUILayout.BeginHorizontal();
-                            {
-                                _fuel.Oxidizer = GUILayout.HorizontalSlider(_fuel.Oxidizer, 0, 1);
-                                GUILayout.Label(_fuel.Oxidizer.ToString("p0"));
-                            }
-                            GUILayout.EndHorizontal();
-                        }
-
-                        if (ShipHasAnyPartsContaining(ship, FuelTypes.SolidFuel))
-                        {
-                            GUILayout.Label(FuelTypes.SolidFuel);
-                            GUILayout.BeginHorizontal();
-                            {
-                                _fuel.SolidFuel = GUILayout.HorizontalSlider(_fuel.SolidFuel, 0, 1);
-                                GUILayout.Label(_fuel.SolidFuel.ToString("p0"));
-                            }
-                            GUILayout.EndHorizontal();
-                        }
-
-                        if (ShipHasAnyPartsContaining(ship, FuelTypes.Monopropellant))
-                        {
-                            GUILayout.Label(FuelTypes.Monopropellant);
-                            GUILayout.BeginHorizontal();
-                            {
-                                _fuel.Monoprop = GUILayout.HorizontalSlider(_fuel.Monoprop, 0, 1);
-                                GUILayout.Label(_fuel.Monoprop.ToString("p0"));
-                            }
-                            GUILayout.EndHorizontal();
-                        }
-
-                        if (_fuel.Changed)
-                        {
-                            _fuel.Apply(ship);
-
-                            _config.FuelModel = _fuel;
-                        }
-                    }
-                    else
-                    {
-                        GUILayout.Label("Ship currently has no parts containing fuel. Add some.");
-                    }
+                    GUILayout.Label("Unable to render GUI. Perhaps there is a mistake in the .js.");
+                    GUILayout.Label(ex.Message);
+                    GUILayout.Label(ex.StackTrace);
                 }
                 GUILayout.EndVertical();
             }
-            GUILayout.EndHorizontal();
 
             GUI.DragWindow();
+        }
+
+        private float RenderFuelControlGroup(float currentAmount, string label)
+        {
+            float amount = currentAmount;
+            float quickAmount = -1;
+
+            GUILayout.BeginHorizontal();
+            {
+                GUILayout.Label(label);
+
+                if (GUILayout.Button("E", GUILayout.Height(_buttonHeight))) { quickAmount = 0; }
+
+                amount = GUILayout.HorizontalSlider(amount, 0, 1);
+
+                if (GUILayout.Button("F", GUILayout.Height(_buttonHeight))) { quickAmount = 1; }
+
+                amount = quickAmount > -1 ? quickAmount : amount;
+
+                GUILayout.Label(amount.ToString("p0"), GUILayout.Width(40f));
+            }
+            GUILayout.EndHorizontal();
+
+            return amount;
         }
 
         #region Utility
@@ -185,6 +161,14 @@ namespace AssemblyFuelUtility
             }
 
             return false;
+        }
+
+        private JEngine CreateJintEngine()
+        {
+            return new JEngine(cfg => cfg.
+                AllowClr().
+                AllowClr(typeof(GUILayout).Assembly).
+                AllowClr(typeof(AssemblyFuelUtility).Assembly));
         }
 
         #endregion
@@ -223,25 +207,20 @@ namespace AssemblyFuelUtility
             if (ApplicationLauncher.Ready)
             {
                 _afuButton = ApplicationLauncher.Instance.AddModApplication(
-                    OnAFUToggleOn,
-                    OnAFUToggleOff,
+                    OnAFUToggle,
+                    OnAFUToggle,
                     null,
                     null,
                     null,
                     null,
                     ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.VAB,
-                    (Texture)GameDatabase.Instance.GetTexture("", false));
+                    (Texture)GameDatabase.Instance.GetTexture("AssemblyFuelUtility/AFUIcon", false));
             }
         }
 
-        private void OnAFUToggleOn()
+        private void OnAFUToggle()
         {
-            _toggleOn = true;
-        }
-
-        private void OnAFUToggleOff()
-        {
-            _toggleOn = false;
+            _toggleOn = !_toggleOn;
         }
 
         #endregion

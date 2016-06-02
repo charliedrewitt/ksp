@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssemblyFuelUtility", "Asse
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CDKspUtil", "CDKspUtil\CDKspUtil.csproj", "{FD4FB30E-DAC4-408A-B184-025223AFE2BD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssemblyFuelUtility.Testing", "AssemblyFuelUtility.Testing\AssemblyFuelUtility.Testing.csproj", "{9751B809-EE47-47B2-B740-E7959699CC86}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{FD4FB30E-DAC4-408A-B184-025223AFE2BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FD4FB30E-DAC4-408A-B184-025223AFE2BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FD4FB30E-DAC4-408A-B184-025223AFE2BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9751B809-EE47-47B2-B740-E7959699CC86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9751B809-EE47-47B2-B740-E7959699CC86}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9751B809-EE47-47B2-B740-E7959699CC86}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9751B809-EE47-47B2-B740-E7959699CC86}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
