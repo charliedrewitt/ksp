@@ -15,32 +15,39 @@ namespace AssemblyFuelUtility
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class AssemblyFuelUtility : MonoBehaviour
     {
-        private const float _buttonHeight = 20f;
-        private GUIStyle _buttonStyle;
-
-        private AssemblyFuelConfigNode _config;
-        private bool _toggleOn = false;
-
         private int _windowId;
+        private bool _toggleOn = false;
+        private string _jEngineSource = "";
+        private JEngine _jEngine;
+        private AssemblyFuelConfigNode _config;
         private Rect _windowPosition;
-
         private FuelModel _fuel;
-
-        private string _debugString = "";
 
         private void Awake()
         {
-            _config = AssemblyFuelConfigNode.LoadOrCreate(GetEnsuredConfigPath());
-
             LogHelper.Info("AssemblyFuelUtility Awake");
 
-            GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
+            _config = AssemblyFuelConfigNode.LoadOrCreate(GetEnsuredConfigPath());
 
             _windowId = WindowHelper.NextWindowId("AssemblyFuelUtility");
             _windowPosition = new Rect(_config.WindowX, _config.WindowY, 0, 0);
             _fuel = _config.FuelModel;
 
+            _jEngine = CreateJintEngine();
+            _jEngineSource = System.IO.File.ReadAllText(IOUtils.GetFilePathFor(typeof(AssemblyFuelUtility), "afu_scripts.js"));
+            _jEngine.Execute(_jEngineSource);
 
+            GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
+        }
+
+        private void Update()
+        {
+            if (_fuel != null && _fuel.Changed)
+            {
+                _fuel.Apply(EditorLogic.fetch.ship);
+
+                _config.FuelModel = _fuel;
+            }
         }
 
         private void OnDestroy()
@@ -75,72 +82,38 @@ namespace AssemblyFuelUtility
             try
             {
                 var ship = EditorLogic.fetch.ship;
-                var functionsSource = System.IO.File.ReadAllText(IOUtils.GetFilePathFor(typeof(AssemblyFuelUtility), "afu_scripts.js"));
-
-                var jEngine = CreateJintEngine();
 
                 //Variables
-                jEngine.SetValue("_fuel", _fuel);
-                jEngine.SetValue("_ship", ship);
-                jEngine.SetValue("_toggleOn", _toggleOn);
-                jEngine.SetValue("_buttonHeight", _buttonHeight);
+                _jEngine.SetValue("_fuel", _fuel);
+                _jEngine.SetValue("_ship", ship);
+                _jEngine.SetValue("_toggleOn", _toggleOn);
 
-                //Functions
-                jEngine.SetValue("ShipHasAnyFuelParts", new Func<ShipConstruct, bool>(ShipHasAnyFuelParts));
-                jEngine.SetValue("ShipHasAnyPartsContaining", new Func<ShipConstruct, string, bool>(ShipHasAnyPartsContaining));
+                //_jEngineSource = System.IO.File.ReadAllText(IOUtils.GetFilePathFor(typeof(AssemblyFuelUtility), "afu_scripts.js"));
+                //_jEngine.Execute(_jEngineSource);
 
-                jEngine.Execute(functionsSource);
-
-                var state = (object[])jEngine.Execute("renderMainGui();").GetCompletionValue().ToObject();
+                var state = (object[])_jEngine.Execute("renderMainGui();").GetCompletionValue().ToObject();
 
                 _toggleOn = (bool)state[0];
                 _fuel = (FuelModel)state[1];
-
-                if (_fuel.Changed)
-                {
-                    _fuel.Apply(ship);
-
-                    _config.FuelModel = _fuel;
-                }
             }
             catch (Exception ex)
             {
-                GUILayout.BeginVertical();
+                GUILayout.BeginHorizontal(GUILayout.Width(400));
                 {
-                    GUILayout.Label("Unable to render GUI. Perhaps there is a mistake in the .js.");
-                    GUILayout.Label(ex.Message);
-                    GUILayout.Label(ex.StackTrace);
+                    GUILayout.BeginVertical();
+                    {
+                        GUILayout.Label("Unable to render GUI. Check for mistakes in afu_scripts.js. Exception details are below.");
+                        GUILayout.Label(ex.Message);
+                        GUILayout.Label(ex.StackTrace);
+                    }
+                    GUILayout.EndVertical();
                 }
-                GUILayout.EndVertical();
+                GUILayout.EndHorizontal();
             }
 
             GUI.DragWindow();
         }
-
-        private float RenderFuelControlGroup(float currentAmount, string label)
-        {
-            float amount = currentAmount;
-            float quickAmount = -1;
-
-            GUILayout.BeginHorizontal();
-            {
-                GUILayout.Label(label);
-
-                if (GUILayout.Button("E", GUILayout.Height(_buttonHeight))) { quickAmount = 0; }
-
-                amount = GUILayout.HorizontalSlider(amount, 0, 1);
-
-                if (GUILayout.Button("F", GUILayout.Height(_buttonHeight))) { quickAmount = 1; }
-
-                amount = quickAmount > -1 ? quickAmount : amount;
-
-                GUILayout.Label(amount.ToString("p0"), GUILayout.Width(40f));
-            }
-            GUILayout.EndHorizontal();
-
-            return amount;
-        }
-
+        
         #region Utility
 
         private bool ShipHasAnyPartsContaining(ShipConstruct ship, string fuelName)
@@ -165,10 +138,15 @@ namespace AssemblyFuelUtility
 
         private JEngine CreateJintEngine()
         {
-            return new JEngine(cfg => cfg.
+            var engine = new JEngine(cfg => cfg.
                 AllowClr().
                 AllowClr(typeof(GUILayout).Assembly).
                 AllowClr(typeof(AssemblyFuelUtility).Assembly));
+            
+            engine.SetValue("ShipHasAnyFuelParts", new Func<ShipConstruct, bool>(ShipHasAnyFuelParts));
+            engine.SetValue("ShipHasAnyPartsContaining", new Func<ShipConstruct, string, bool>(ShipHasAnyPartsContaining));
+
+            return engine;
         }
 
         #endregion

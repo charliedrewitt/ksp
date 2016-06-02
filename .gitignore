@@ -244,3 +244,4 @@ ModelManifest.xml
 # FAKE - F# Make
 .fake/
 /**/GameData/**/*.dll
+/AssemblyFuelUtility/PartDatabase.cfg

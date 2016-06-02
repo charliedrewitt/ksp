@@ -18,11 +18,7 @@ namespace AssemblyFuelUtility.Testing
 
         private static void TestJavascriptExecution()
         {
-            string source = File.ReadAllText(@"..\..\..\AssemblyFuelUtility\GameData\AssemblyFuelUtility\Scripts\\RenderFuelControl.js");
-
-            var engine = new Engine(cfg => cfg.AllowClr().AllowClr(typeof(GUILayout).Assembly)).Execute(source);
-
-            engine.Execute("renderTestAmountLabel(5);");
+            
         }
     }
 }

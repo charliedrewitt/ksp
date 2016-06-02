@@ -1,17 +1,28 @@
 ﻿var UnityEngine = importNamespace('UnityEngine');
 var GUILayout = UnityEngine.GUILayout;
-var _adjustAll = 0;
+var GUI = UnityEngine.GUI;
+var Rect = UnityEngine.Rect;
+var _buttonHeight = 25;
+var _smallButtonDimension = [17, 17];
 
 function renderMainGui() {
-    GUILayout.BeginHorizontal(GUILayout.Width(400));
+    setSmallButtonSkin();
+
+    if (GUI.Button(new Rect(421, 2, 17, 17), "x")) {
+        _toggleOn = false;
+    }
+
+    GUILayout.BeginHorizontal(GUILayout.Width(420));
     {
         GUILayout.BeginVertical();
         {
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label('Use the sliders or [E]mpty and [F]ull buttons top adjust fuel in all tanks.');
-                if (GUILayout.Button("X", GUILayout.ExpandWidth(false), GUILayout.Height(_buttonHeight))) {
-                    _toggleOn = false;
+                if (ShipHasAnyFuelParts(_ship)) {
+                    GUILayout.Label('Use the sliders or [E]mpty and [F]ull buttons to adjust fuel in all tanks.');
+                }
+                else {
+                    GUILayout.Label('The ship has no parts which contain fuel of any kind.');
                 }
             }
             GUILayout.EndHorizontal();
@@ -36,10 +47,10 @@ function renderMainGui() {
                     _fuel.Monoprop = renderFuelControlGroup(_fuel.Monoprop, 'Monoprop');
                 }
 
-                //_adjustAll = renderFuelControlGroup(_adjustAll, '');
-
                 GUILayout.BeginHorizontal();
                 {
+                    setLargeButtonSkin();
+
                     if (GUILayout.Button("Empty All Tanks", GUILayout.Height(_buttonHeight))) {
                         _fuel.LiquidFuel = 0;
                         _fuel.Oxidizer = 0;
@@ -65,7 +76,6 @@ function renderMainGui() {
 function renderFuelControlGroup(currentAmount, label) {
     var amount = currentAmount;
     var quickAmount = -1;
-    var buttonDimension = 17;
 
     GUILayout.BeginHorizontal();
     {
@@ -73,11 +83,12 @@ function renderFuelControlGroup(currentAmount, label) {
             GUILayout.Label(label, GUILayout.Width(65));
         }
 
-        if (GUILayout.Button("E", GUILayout.Width(buttonDimension), GUILayout.Height(buttonDimension))) { quickAmount = 0; }
+        if (GUILayout.Button("E", GUILayout.Width(_smallButtonDimension[0]), GUILayout.Height(_smallButtonDimension[1]))) { quickAmount = 0; }
 
-        amount = GUILayout.HorizontalSlider(amount, 0, 1);
+        GUI.skin.horizontalScrollbar.margin.top = 5;
+        amount = GUILayout.HorizontalScrollbar(amount, 0.1, 0, 1.1);
 
-        if (GUILayout.Button("F", GUILayout.Width(buttonDimension), GUILayout.Height(buttonDimension))) { quickAmount = 1; }
+        if (GUILayout.Button("F", GUILayout.Width(_smallButtonDimension[0]), GUILayout.Height(_smallButtonDimension[1]))) { quickAmount = 1; }
 
         amount = quickAmount > -1 ? quickAmount : amount;
 
@@ -87,4 +98,13 @@ function renderFuelControlGroup(currentAmount, label) {
 
     return amount;
 }
-
+function setSmallButtonSkin() {
+    GUI.skin.button.alignment = 1;
+    GUI.skin.button.padding.top = 0;
+    GUI.skin.button.padding.bottom = 0;
+    GUI.skin.button.padding.right = 0;
+    GUI.skin.button.padding.left = 0;
+}
+function setLargeButtonSkin() {
+    GUI.skin.button.alignment = 4;
+}
